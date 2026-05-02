@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dominating Set — BCS 309 Final Project</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg: #0a0c10;
+  --surface: #111318;
+  --surface2: #181c24;
+  --surface3: #1e2330;
+  --border: #2a3044;
+  --accent: #00e5ff;
+  --accent2: #ff6b35;
+  --accent3: #a8ff78;
+  --purple: #c77dff;
+  --text: #e8eaf0;
+  --text-dim: #8892a4;
+  --text-faint: #4a5568;
+  --ds-blue: #00e5ff;
+  --ds-orange: #ff6b35;
+  --dominated: #a8ff7855;
+  --dominator: #00e5ff;
+  --undominated: #ff6b3555;
+  --node-default: #2a3044;
+  --node-selected: #00e5ff;
+  --edge: #3a4460;
+  --red: #ff4757;
+  --yellow: #ffd32a;
+  --green: #a8ff78;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* HEADER */
+header {
+  background: linear-gradient(135deg, #0d1117 0%, #111827 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+header .logo {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--accent);
+}
+header .logo span { color: var(--text-dim); font-weight: 400; font-size: 0.9rem; margin-left: 10px; }
+header .badge {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+}
+
+/* NAV TABS */
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 14px 32px 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.nav-tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  border-bottom: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+.nav-tab:hover { color: var(--text); background: var(--surface2); }
+.nav-tab.active {
+  color: var(--accent);
+  background: var(--bg);
+  border-color: var(--border);
+  border-bottom-color: var(--bg);
+}
+
+/* PAGES */
+.page { display: none; padding: 28px 32px; }
+.page.active { display: block; }
+
+/* LAYOUT */
+.two-col {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  min-height: calc(100vh - 140px);
+}
+@media (max-width: 900px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+
+/* PANELS */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.panel-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* CONTROLS */
+.control-group { margin-bottom: 16px; }
+.control-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  display: block;
+  letter-spacing: 0.5px;
+}
+.control-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+input[type="text"], textarea, select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input[type="text"]:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--surface3);
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary { background: var(--accent); color: #0a0c10; }
+.btn-primary:hover { background: #33eeff; transform: translateY(-1px); }
+.btn-secondary { background: var(--surface3); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #ff6b7a; }
+.btn-sm { padding: 5px 10px; font-size: 0.72rem; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+.preset-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Space Mono', monospace;
+}
+.preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* STATUS BAR */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); }
+.status-dot.running { background: var(--accent); animation: pulse 1s infinite; }
+.status-dot.done { background: var(--green); }
+.status-dot.error { background: var(--red); }
+
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* STEP COUNTER */
+.step-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--surface3);
+  border-radius: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.step-info .step-num { color: var(--accent); font-weight: 700; }
+
+/* VISUALIZATION */
+.viz-container {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+#mainCanvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+}
+
+/* LEGEND */
+.legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* PSEUDOCODE */
+.pseudo-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  line-height: 1.8;
+  margin-top: 16px;
+}
+.pseudo-line { padding: 2px 6px; border-radius: 4px; transition: background 0.2s; }
+.pseudo-line.active { background: #00e5ff22; color: var(--accent); }
+.pseudo-line .ln { color: var(--text-faint); margin-right: 10px; user-select: none; }
+.pseudo-line .kw { color: var(--purple); }
+.pseudo-line .fn { color: var(--accent2); }
+.pseudo-line .cm { color: var(--text-faint); font-style: italic; }
+
+/* EXPLANATION BOX */
+.explanation-box {
+  background: var(--surface3);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 12px;
+  min-height: 48px;
+  line-height: 1.6;
+  font-family: 'Space Mono', monospace;
+}
+.explanation-box .highlight { color: var(--accent); font-weight: 700; }
+
+/* STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.stat-card {
+  background: var(--surface3);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  font-family: 'Space Mono', monospace;
+}
+.stat-label { font-size: 0.68rem; color: var(--text-faint); margin-top: 4px; letter-spacing: 0.5px; }
+
+/* CHART */
+.chart-area {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.chart-title {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+#growthChart { width: 100%; height: 140px; }
+
+/* COLLAPSIBLE SECTION */
+.collapsible { margin-bottom: 16px; }
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.collapsible-header:hover { border-color: var(--accent); color: var(--accent); }
+.collapsible-header .arrow { transition: transform 0.2s; font-size: 0.7rem; }
+.collapsible-header.open .arrow { transform: rotate(180deg); }
+.collapsible-body {
+  display: none;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+.collapsible-body.open { display: block; }
+
+/* NP PROOF SECTION */
+.proof-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.proof-block h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+.proof-block p, .proof-block li {
+  font-size: 0.82rem;
+  line-height: 1.75;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.proof-block ul { padding-left: 20px; }
+.proof-block .math {
+  font-family: 'Space Mono', monospace;
+  background: var(--surface3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 0.8em;
+}
+.proof-block strong { color: var(--text); }
+
+/* REDUCTION DIAGRAM */
+#reductionSvg { width: 100%; }
+
+/* COMPARISON MODE */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.compare-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.compare-header {
+  padding: 10px 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.compare-header.brute { background: #ff6b3520; color: var(--accent2); border-bottom: 1px solid #ff6b3540; }
+.compare-header.greedy { background: #00e5ff20; color: var(--accent); border-bottom: 1px solid #00e5ff40; }
+.compare-canvas { display: block; width: 100%; }
+
+/* BADGES */
+.badge-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.badge-np { background: #ff475720; color: var(--red); border: 1px solid #ff475740; }
+.badge-greedy { background: #00e5ff20; color: var(--accent); border: 1px solid #00e5ff40; }
+.badge-brute { background: #ff6b3520; color: var(--accent2); border: 1px solid #ff6b3540; }
+
+/* KEY CONCEPT BOX */
+.concept-box {
+  background: linear-gradient(135deg, #00e5ff08, #c77dff08);
+  border: 1px solid #00e5ff30;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.concept-box .title { color: var(--accent); font-weight: 700; font-size: 0.8rem; margin-bottom: 8px; }
+.concept-box p { font-size: 0.8rem; color: var(--text-dim); line-height: 1.7; }
+
+/* TABLE */
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th { background: var(--surface3); padding: 10px; text-align: left; color: var(--text-dim); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.5px; }
+td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-dim); }
+tr:last-child td { border-bottom: none; }
+
+/* INPUT EDGE FORMAT HINT */
+.hint { font-size: 0.68rem; color: var(--text-faint); margin-top: 4px; font-family: 'Space Mono', monospace; }
+
+/* TABS FOR ALGORITHM SWITCH */
+.algo-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.algo-tab {
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  background: var(--surface2);
+  transition: all 0.15s;
+}
+.algo-tab.active.brute { border-color: var(--accent2); color: var(--accent2); background: #ff6b3515; }
+.algo-tab.active.greedy { border-color: var(--accent); color: var(--accent); background: #00e5ff15; }
+
+/* MODE INDICATOR */
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.mode-badge.edit { background: #ffd32a20; color: var(--yellow); border: 1px solid #ffd32a40; }
+.mode-badge.algo { background: #00e5ff20; color: var(--accent); border: 1px solid #00e5ff40; }
+
+/* NOTIFICATION TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--surface3);
+  border: 1px solid var(--accent);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: var(--text);
+  z-index: 999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s;
+  font-family: 'Space Mono', monospace;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+hr.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Dominating Set <span>BCS 309 — Algorithms I · Spring 2026</span></div>
+  <div class="badge">Al-Qassab · 20220002674</div>
+</header>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showPage('tool')">🔬 Interactive Tool</div>
+  <div class="nav-tab" onclick="showPage('np')">📐 NP-Completeness</div>
+  <div class="nav-tab" onclick="showPage('compare')">⚖️ Comparison Mode</div>
+  <div class="nav-tab" onclick="showPage('overview')">📚 Overview</div>
+</div>
+
+<!-- ===================== PAGE: TOOL ===================== -->
+<div class="page active" id="page-tool">
+  <div class="two-col">
+    <!-- LEFT PANEL: CONTROLS -->
+    <div>
+      <div class="panel">
+        <div class="panel-title">Graph Input</div>
+
+        <div class="control-group">
+          <label class="control-label">Preset Graphs</label>
+          <div class="control-row">
+            <button class="preset-btn" onclick="loadPreset('triangle')">Triangle</button>
+            <button class="preset-btn" onclick="loadPreset('star')">Star K1,5</button>
+            <button class="preset-btn" onclick="loadPreset('path')">Path P6</button>
+            <button class="preset-btn" onclick="loadPreset('petersen')">Petersen</button>
+            <button class="preset-btn" onclick="loadPreset('grid4')">Grid 2×3</button>
+            <button class="preset-btn" onclick="loadPreset('random')">Random</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Custom Edges (one per line: u,v)</label>
+          <textarea id="edgeInput" rows="5" placeholder="0,1&#10;1,2&#10;2,3&#10;3,0"></textarea>
+          <div class="hint">Vertices auto-detected. Click canvas to drag nodes.</div>
+        </div>
+
+        <div class="control-group">
+          <button class="btn btn-primary" onclick="buildGraph()" style="width:100%">⚡ Build Graph</button>
+        </div>
+
+        <hr class="divider">
+        <div class="panel-title">Algorithm</div>
+
+        <div class="algo-tabs">
+          <div class="algo-tab active brute" id="tab-brute" onclick="setAlgo('brute')">Brute-Force</div>
+          <div class="algo-tab greedy" id="tab-greedy" onclick="setAlgo('greedy')">Greedy</div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Speed: <span id="speedVal">Medium</span></label>
+          <input type="range" id="speedSlider" min="0" max="4" value="2" oninput="updateSpeed(this.value)">
+        </div>
+
+        <div class="control-row">
+          <button class="btn btn-primary" id="btnBuild" onclick="startAlgorithm()">▶ Build Steps</button>
+          <button class="btn btn-secondary" id="btnStep" onclick="stepAlgorithm()" disabled>⏭ Step</button>
+          <button class="btn btn-secondary" id="btnPlay" onclick="playAlgorithm()" disabled>▷ Play</button>
+          <button class="btn btn-secondary" id="btnPause" onclick="pauseAlgorithm()" disabled>⏸ Pause</button>
+          <button class="btn btn-danger btn-sm" onclick="resetAlgorithm()">↺ Reset</button>
+        </div>
+
+        <hr class="divider">
+
+        <div class="status-bar">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText" style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--text-dim)">Ready — build a graph to begin</span>
+        </div>
+
+        <div class="step-info">
+          <span>Step: <span class="step-num" id="stepNum">—</span></span>
+          <span>|D|: <span class="step-num" id="dsSize">—</span></span>
+          <span>Dominated: <span class="step-num" id="domPct">—</span></span>
+        </div>
+
+        <div class="explanation-box" id="explanationBox">Select an algorithm and press <span class="highlight">Build Steps</span> to start.</div>
+      </div>
+
+      <!-- STATS -->
+      <div class="panel" style="margin-top:16px">
+        <div class="panel-title">Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-val" id="statV">0</div>
+            <div class="stat-label">VERTICES |V|</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="statE">0</div>
+            <div class="stat-label">EDGES |E|</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="statK" style="color:var(--green)">—</div>
+            <div class="stat-label">DS SIZE k</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="statOps" style="color:var(--accent2)">0</div>
+            <div class="stat-label">OPERATIONS</div>
+          </div>
+        </div>
+        <div class="chart-area">
+          <div class="chart-title">Brute-Force vs Greedy: Ops vs |V|</div>
+          <canvas id="growthChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: VISUALIZATION -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:0.85rem;font-weight:700;color:var(--text)">Graph Visualization</div>
+        <div id="modeBadge" class="mode-badge edit">✏ Edit Mode — click/drag nodes</div>
+      </div>
+
+      <div class="viz-container">
+        <canvas id="mainCanvas" height="500"></canvas>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--node-selected)"></div> In Dominating Set</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Dominated (neighbor of DS)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> Undominated</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--node-default)"></div> Unvisited</div>
+        </div>
+      </div>
+
+      <!-- PSEUDOCODE -->
+      <div style="margin-top:16px">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--text-dim);margin-bottom:8px;letter-spacing:1px">PSEUDOCODE</div>
+        <div class="pseudo-box" id="pseudoBox">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAGE: NP-COMPLETENESS ===================== -->
+<div class="page" id="page-np">
+  <div style="max-width:900px;margin:0 auto">
+
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+      <h1 style="font-size:1.6rem;font-weight:800">NP-Completeness Proof</h1>
+      <span class="badge-pill badge-np">NP-COMPLETE</span>
+    </div>
+
+    <!-- STEP 1: IN NP -->
+    <div class="proof-block">
+      <h3>Step 1: Dominating Set ∈ NP</h3>
+      <p><strong>Certificate:</strong> A subset <span class="math">D ⊆ V</span> with <span class="math">|D| ≤ k</span>.</p>
+      <p><strong>Verifier (polynomial time O(|V| + |E|)):</strong></p>
+      <ul>
+        <li>Check <span class="math">|D| ≤ k</span>. If not, reject. <em>(O(k))</em></li>
+        <li>For each vertex <span class="math">v ∈ V</span>, check whether <span class="math">v ∈ D</span> or <span class="math">∃ u ∈ D</span> such that <span class="math">(u,v) ∈ E</span>. <em>(O(|V|·|E|) → O(|V|+|E|) with adjacency list)</em></li>
+        <li>If every vertex is covered, <strong>accept</strong>. Otherwise, <strong>reject</strong>.</li>
+      </ul>
+      <p>Since verification runs in polynomial time, <strong>Dominating Set ∈ NP</strong>. ∎</p>
+    </div>
+
+    <!-- STEP 2: REDUCTION -->
+    <div class="proof-block">
+      <h3>Step 2: Vertex Cover ≤ₚ Dominating Set</h3>
+      <p>We show <strong>Vertex Cover</strong> (known NP-complete) reduces to Dominating Set in polynomial time.</p>
+
+      <p><strong>Construction:</strong> Given a Vertex Cover instance <span class="math">(G = (V, E), k)</span>, construct graph <span class="math">G' = (V', E')</span>:</p>
+      <ul>
+        <li>Start with <span class="math">V' = V</span>, <span class="math">E' = E</span>.</li>
+        <li>For each edge <span class="math">(u, v) ∈ E</span>, add a new <em>gadget vertex</em> <span class="math">w_{uv}</span> connected only to <span class="math">u</span> and <span class="math">v</span>.</li>
+      </ul>
+      <p>The parameter remains <span class="math">k</span>. This gives <span class="math">(G', k)</span>.</p>
+
+      <p><strong>Polynomiality:</strong> We add at most <span class="math">|E|</span> new vertices and <span class="math">2|E|</span> edges → <span class="math">|V'| = |V| + |E|</span>, which is polynomial.</p>
+    </div>
+
+    <!-- REDUCTION DIAGRAM -->
+    <div class="proof-block">
+      <h3>Reduction Diagram</h3>
+      <svg id="reductionSvg" viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg" style="background:var(--surface2);border-radius:8px;padding:10px"></svg>
+      <p style="margin-top:10px;font-size:0.78rem">Each original edge <span class="math">(u,v)</span> gets a private gadget vertex <span class="math">w_{uv}</span>. The gadget vertex can only be dominated by <span class="math">u</span> or <span class="math">v</span> — forcing at least one of them into any dominating set. This mirrors the vertex cover constraint.</p>
+    </div>
+
+    <!-- FORWARD DIRECTION -->
+    <div class="proof-block">
+      <h3>Forward Direction: VC → DS</h3>
+      <p><strong>Claim:</strong> If <span class="math">G</span> has a vertex cover <span class="math">C</span> with <span class="math">|C| ≤ k</span>, then <span class="math">G'</span> has a dominating set <span class="math">D</span> with <span class="math">|D| ≤ k</span>.</p>
+      <p><strong>Proof:</strong> Set <span class="math">D = C</span>. We verify every vertex in <span class="math">V'</span> is dominated:</p>
+      <ul>
+        <li>Original vertices in <span class="math">C</span>: trivially in <span class="math">D</span>, so dominated. ✓</li>
+        <li>Original vertices not in <span class="math">C</span>: since <span class="math">C</span> is a vertex cover, every edge <span class="math">(u,v)</span> has <span class="math">u ∈ C</span> or <span class="math">v ∈ C</span>. If <span class="math">v ∉ C</span>, there must be some neighbor <span class="math">u ∈ C = D</span> (as an isolated vertex would have no edge to cover anyway). ✓</li>
+        <li>Gadget vertex <span class="math">w_{uv}</span>: since <span class="math">C</span> covers edge <span class="math">(u,v)</span>, at least one of <span class="math">u, v ∈ C = D</span>. Since <span class="math">w_{uv}</span> is adjacent to both, it is dominated. ✓</li>
+      </ul>
+      <p>So <span class="math">D = C</span> is a dominating set in <span class="math">G'</span> of size <span class="math">≤ k</span>. ∎</p>
+    </div>
+
+    <!-- BACKWARD DIRECTION -->
+    <div class="proof-block">
+      <h3>Backward Direction: DS → VC</h3>
+      <p><strong>Claim:</strong> If <span class="math">G'</span> has a dominating set <span class="math">D'</span> with <span class="math">|D'| ≤ k</span>, then <span class="math">G</span> has a vertex cover of size <span class="math">≤ k</span>.</p>
+      <p><strong>Proof:</strong> We may assume <span class="math">D' ⊆ V</span> (original vertices only), because:</p>
+      <ul>
+        <li>Any gadget vertex <span class="math">w_{uv} ∈ D'</span> only dominates itself and <span class="math">u, v</span>. Replacing <span class="math">w_{uv}</span> with either <span class="math">u</span> or <span class="math">v</span> still dominates <span class="math">w_{uv}</span> (now as a neighbor) and at least as many others. So we can always swap gadget vertices out for original vertices without increasing <span class="math">|D'|</span>.</li>
+      </ul>
+      <p>Now let <span class="math">C = D' ∩ V</span>. Claim: <span class="math">C</span> is a vertex cover of <span class="math">G</span>.</p>
+      <ul>
+        <li>Take any edge <span class="math">(u,v) ∈ E</span>. The gadget vertex <span class="math">w_{uv}</span> must be dominated in <span class="math">G'</span>. Its only neighbors are <span class="math">u</span> and <span class="math">v</span>. So either <span class="math">w_{uv} ∈ D'</span> (impossible after our swap), or <span class="math">u ∈ D'</span>, or <span class="math">v ∈ D'</span>.</li>
+        <li>Therefore <span class="math">u ∈ C</span> or <span class="math">v ∈ C</span> for every edge — <span class="math">C</span> is a vertex cover. ✓</li>
+      </ul>
+      <p>Since <span class="math">|C| ≤ |D'| ≤ k</span>, we have a vertex cover of size <span class="math">≤ k</span>. ∎</p>
+    </div>
+
+    <!-- CONCLUSION -->
+    <div class="proof-block" style="border-color:#00e5ff40;background:linear-gradient(135deg,#00e5ff08,#0a0c10)">
+      <h3 style="color:var(--green)">Conclusion</h3>
+      <ul>
+        <li>Dominating Set ∈ NP (Step 1).</li>
+        <li>Vertex Cover ≤ₚ Dominating Set (Step 2): polynomial reduction, both directions proved.</li>
+        <li>Vertex Cover is NP-complete (Garey & Johnson 1979).</li>
+        <li>Therefore <strong>Dominating Set is NP-complete</strong>. ∎</li>
+      </ul>
+    </div>
+
+    <!-- INTERACTIVE REDUCTION VIZ -->
+    <div class="proof-block">
+      <h3>Interactive Reduction Visualizer</h3>
+      <p style="margin-bottom:12px">Enter a small graph and see the reduction gadget construction in real time.</p>
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px">
+        <div style="flex:1">
+          <label class="control-label">Edges (u,v per line):</label>
+          <textarea id="reductionInput" rows="4" placeholder="0,1&#10;1,2&#10;0,2">0,1&#10;1,2&#10;0,2</textarea>
+        </div>
+        <div style="padding-top:22px">
+          <button class="btn btn-primary" onclick="drawReductionDemo()">Build G'</button>
+        </div>
+      </div>
+      <canvas id="reductionCanvas" height="280" style="width:100%;background:var(--surface2);border-radius:8px;border:1px solid var(--border)"></canvas>
+      <div class="hint" style="margin-top:6px">Blue = original vertices/edges · Orange = gadget vertices w_uv (added by reduction)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAGE: COMPARE ===================== -->
+<div class="page" id="page-compare">
+  <div style="margin-bottom:20px">
+    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:6px">Comparison Mode</h2>
+    <p style="color:var(--text-dim);font-size:0.83rem">Run Brute-Force and Greedy side-by-side on the same graph to compare solution quality and performance.</p>
+  </div>
+
+  <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap">
+    <div>
+      <label class="control-label">Preset</label>
+      <div class="control-row">
+        <button class="preset-btn" onclick="loadComparePreset('triangle')">Triangle</button>
+        <button class="preset-btn" onclick="loadComparePreset('star')">Star</button>
+        <button class="preset-btn" onclick="loadComparePreset('path')">Path P6</button>
+        <button class="preset-btn" onclick="loadComparePreset('grid4')">Grid</button>
+        <button class="preset-btn" onclick="loadComparePreset('random')">Random</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="runComparison()">▶ Run Both</button>
+    <button class="btn btn-secondary" onclick="resetComparison()">↺ Reset</button>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-panel">
+      <div class="compare-header brute">
+        BRUTE-FORCE (EXACT) <span id="bruteK">k = —</span>
+      </div>
+      <canvas id="bruteCanvas" height="300" class="compare-canvas"></canvas>
+    </div>
+    <div class="compare-panel">
+      <div class="compare-header greedy">
+        GREEDY (HEURISTIC) <span id="greedyK">k = —</span>
+      </div>
+      <canvas id="greedyCanvas" height="300" class="compare-canvas"></canvas>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px">
+    <div class="panel">
+      <div class="panel-title">Brute-Force Analysis</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="bfOps" style="color:var(--accent2)">—</div><div class="stat-label">SUBSETS CHECKED</div></div>
+        <div class="stat-card"><div class="stat-val" id="bfTime" style="color:var(--accent2)">—</div><div class="stat-label">TIME (ms)</div></div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-top:12px;line-height:1.6">Checks all <span style="color:var(--accent2);font-family:'Space Mono',monospace">2<sup>n</sup></span> subsets. Guarantees optimal solution. Exponential time: O(2ⁿ·(n+m)).</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Greedy Analysis</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="greedyOps">—</div><div class="stat-label">ITERATIONS</div></div>
+        <div class="stat-card"><div class="stat-val" id="greedyTime">—</div><div class="stat-label">TIME (ms)</div></div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-top:12px;line-height:1.6">Polynomial time O(n²). Approximation ratio: <span style="color:var(--accent);font-family:'Space Mono',monospace">O(ln n)</span> via Set Cover reduction.</p>
+    </div>
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="panel" style="margin-top:16px">
+    <div class="panel-title">Head-to-Head Comparison</div>
+    <table>
+      <thead><tr><th>Property</th><th>Brute-Force</th><th>Greedy</th></tr></thead>
+      <tbody>
+        <tr><td>Solution Optimality</td><td style="color:var(--green)">Always optimal</td><td style="color:var(--yellow)">H(n)-approximation</td></tr>
+        <tr><td>Time Complexity</td><td style="color:var(--red)">O(2ⁿ · (n+m))</td><td style="color:var(--green)">O(n²)</td></tr>
+        <tr><td>Practical for large n</td><td style="color:var(--red)">No (n > 20 infeasible)</td><td style="color:var(--green)">Yes</td></tr>
+        <tr><td>Dominating Set Size</td><td id="cmpBfK" style="color:var(--accent2)">—</td><td id="cmpGK" style="color:var(--accent)">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== PAGE: OVERVIEW ===================== -->
+<div class="page" id="page-overview">
+  <div style="max-width:800px;margin:0 auto">
+    <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:20px">Problem Overview</h1>
+
+    <div class="collapsible">
+      <div class="collapsible-header open" onclick="toggleCollapsible(this)">
+        What is the Dominating Set Problem? <span class="arrow">▼</span>
+      </div>
+      <div class="collapsible-body open">
+        <p>Given an undirected graph <strong>G = (V, E)</strong> and integer <strong>k</strong>, does there exist a subset <strong>D ⊆ V</strong> with <strong>|D| ≤ k</strong> such that every vertex in V is either in D or adjacent to a vertex in D?</p>
+        <p style="margin-top:10px">Dominating Set is <span class="badge-pill badge-np">NP-COMPLETE</span> — proven via reduction from Vertex Cover.</p>
+      </div>
+    </div>
+
+    <div class="collapsible">
+      <div class="collapsible-header" onclick="toggleCollapsible(this)">
+        How does it differ from Vertex Cover? <span class="arrow">▼</span>
+      </div>
+      <div class="collapsible-body">
+        <table>
+          <tr><th>Property</th><th>Vertex Cover</th><th>Dominating Set</th></tr>
+          <tr><td>Goal</td><td>Touch every <em>edge</em></td><td>Be "close" to every <em>vertex</em></td></tr>
+          <tr><td>Constraint</td><td>∀(u,v)∈E: u∈C or v∈C</td><td>∀v∈V: v∈D or ∃u∈N(v)∩D</td></tr>
+          <tr><td>Isolated vertices</td><td>Always covered</td><td>Must be in D</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="collapsible">
+      <div class="collapsible-header" onclick="toggleCollapsible(this)">
+        Real-world Applications <span class="arrow">▼</span>
+      </div>
+      <div class="collapsible-body">
+        <ul style="list-style:disc;padding-left:20px">
+          <li><strong>Wireless networks:</strong> Place base stations (dominating set) so every device is within one hop.</li>
+          <li><strong>Social influence:</strong> Select minimal set of influencers so every person knows at least one.</li>
+          <li><strong>Sensor networks:</strong> Cover every node with at least one sensor nearby.</li>
+          <li><strong>Facility location:</strong> Place facilities so every client is near one.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="collapsible">
+      <div class="collapsible-header" onclick="toggleCollapsible(this)">
+        Worked Example: Greedy Algorithm <span class="arrow">▼</span>
+      </div>
+      <div class="collapsible-body">
+        <p>Consider a star graph K₁,₄ with center node 0 and leaves 1, 2, 3, 4.</p>
+        <p><strong>Step 1:</strong> Compute domination gain for each vertex:</p>
+        <ul>
+          <li>Node 0: dominates itself + 4 leaves = <strong>5 vertices</strong></li>
+          <li>Nodes 1–4: each dominates itself + node 0 = <strong>2 vertices</strong></li>
+        </ul>
+        <p><strong>Step 2:</strong> Select node 0 (max gain = 5). All 5 vertices are now dominated.</p>
+        <p><strong>Result:</strong> D = {0}, |D| = 1. This is optimal. ✓</p>
+        <p style="margin-top:10px">The greedy always picks the "most useful" vertex — the one dominating the most currently-undominated vertices.</p>
+      </div>
+    </div>
+
+    <div class="collapsible">
+      <div class="collapsible-header" onclick="toggleCollapsible(this)">
+        Greedy Approximation Ratio (CLO-3) <span class="arrow">▼</span>
+      </div>
+      <div class="collapsible-body">
+        <p>The greedy domination algorithm is a special case of <strong>Set Cover</strong> (each vertex v covers the set {v} ∪ N(v)). The greedy set cover achieves approximation ratio <strong>H(Δ+1) = O(ln Δ)</strong>, where Δ is the max degree.</p>
+        <p style="margin-top:8px">In general: greedy gives a <strong>O(ln n)</strong> approximation of the optimal dominating set size.</p>
+        <p style="margin-top:8px"><strong>Counterexample (greedy not optimal):</strong> Consider a path 1–2–3–4–5–6. Optimal D = {2, 5} (size 2). Greedy may pick 1 first (if tiebreak), leading to D = {1, 4} or similar of size 2 — acceptable here — but on larger carefully crafted graphs, greedy can exceed optimal by O(ln n) factor.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:24px">
+      <div class="concept-box">
+        <div class="title">🔑 Key Concept: Why NP-Complete?</div>
+        <p>No polynomial-time algorithm for Dominating Set is known. The reduction from Vertex Cover shows that if we could solve Dominating Set in polynomial time, we could solve Vertex Cover (and all NP problems) in polynomial time — implying P = NP.</p>
+      </div>
+      <div class="concept-box">
+        <div class="title">🔑 Key Concept: The Gadget Trick</div>
+        <p>The edge-subdivision gadget w_uv is a "sentinel" — it forces either u or v to enter any dominating set (since w_uv has no other neighbors). This perfectly encodes the vertex cover constraint inside the dominating set framework.</p>
+      </div>
+      <div class="concept-box">
+        <div class="title">🔑 Key Concept: Greedy as Set Cover</div>
+        <p>Each vertex v can be seen as a "set" covering {v} ∪ N(v). Finding a minimum dominating set is equivalent to the minimum Set Cover problem on these sets. Greedy Set Cover achieves a ln(n)+1 approximation ratio.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===========================
+// GRAPH DATA
+// ===========================
+let graph = { nodes: [], edges: [] };
+let nodePos = []; // [{x,y}]
+let algoMode = 'greedy'; // 'greedy' or 'brute'
+let algoSteps = [];
+let currentStep = -1;
+let playInterval = null;
+let speedMs = [600, 400, 250, 120, 40];
+let speedLabels = ['Slow','Medium-Slow','Medium','Fast','Instant'];
+let currentSpeed = 2;
+let ops = 0;
+let dragging = null, dragOffX = 0, dragOffY = 0;
+
+const mainCanvas = document.getElementById('mainCanvas');
+const ctx = mainCanvas.getContext('2d');
+
+// Resize canvas
+function resizeCanvas() {
+  const container = mainCanvas.parentElement;
+  mainCanvas.width = container.clientWidth;
+  mainCanvas.height = 500;
+  drawGraph();
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+// ===========================
+// PRESETS
+// ===========================
+const presets = {
+  triangle: [[0,1],[1,2],[0,2]],
+  star: [[0,1],[0,2],[0,3],[0,4],[0,5]],
+  path: [[0,1],[1,2],[2,3],[3,4],[4,5]],
+  petersen: [[0,1],[1,2],[2,3],[3,4],[4,0],[0,5],[1,6],[2,7],[3,8],[4,9],[5,7],[5,8],[6,8],[6,9],[7,9]],
+  grid4: [[0,1],[1,2],[3,4],[4,5],[0,3],[1,4],[2,5]],
+  random: null
+};
+
+function loadPreset(name) {
+  let edges;
+  if (name === 'random') {
+    const n = 7 + Math.floor(Math.random()*3);
+    edges = [];
+    for (let i=0; i<n; i++) for (let j=i+1; j<n; j++) if (Math.random()<0.35) edges.push([i,j]);
+    if (edges.length === 0) edges = [[0,1],[1,2]];
+  } else {
+    edges = presets[name];
+  }
+  document.getElementById('edgeInput').value = edges.map(e=>e.join(',')).join('\n');
+  buildGraph();
+}
+
+function buildGraph() {
+  const raw = document.getElementById('edgeInput').value.trim();
+  const edges = [];
+  const nodeSet = new Set();
+  for (const line of raw.split('\n')) {
+    const parts = line.trim().split(',');
+    if (parts.length >= 2) {
+      const u = parseInt(parts[0]), v = parseInt(parts[1]);
+      if (!isNaN(u) && !isNaN(v)) {
+        edges.push([u,v]);
+        nodeSet.add(u); nodeSet.add(v);
+      }
+    }
+  }
+  const nodes = [...nodeSet].sort((a,b)=>a-b);
+  graph.nodes = nodes;
+  graph.edges = edges;
+  layoutGraph();
+  resetAlgorithm();
+  updateStats();
+  showToast(`Graph built: ${nodes.length} vertices, ${edges.length} edges`);
+}
+
+function layoutGraph() {
+  const n = graph.nodes.length;
+  if (n === 0) return;
+  resizeCanvas();
+  const cx = mainCanvas.width / 2, cy = mainCanvas.height / 2;
+  const r = Math.min(cx, cy) * 0.7;
+  nodePos = graph.nodes.map((_, i) => ({
+    x: cx + r * Math.cos(2*Math.PI*i/n - Math.PI/2),
+    y: cy + r * Math.sin(2*Math.PI*i/n - Math.PI/2)
+  }));
+}
+
+// ===========================
+// DRAW GRAPH
+// ===========================
+let nodeColors = {}; // nodeId -> color state: 'default','dominator','dominated','undominated','candidate'
+
+function drawGraph(highlight = {}) {
+  if (!mainCanvas.width) resizeCanvas();
+  ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+  if (graph.nodes.length === 0) {
+    ctx.fillStyle = '#4a5568';
+    ctx.font = '14px Syne';
+    ctx.textAlign = 'center';
+    ctx.fillText('Load a preset or enter edges and press Build Graph', mainCanvas.width/2, mainCanvas.height/2);
+    return;
+  }
+
+  const nodeIndex = {};
+  graph.nodes.forEach((n,i) => nodeIndex[n] = i);
+
+  // Draw edges
+  for (const [u,v] of graph.edges) {
+    const pu = nodePos[nodeIndex[u]], pv = nodePos[nodeIndex[v]];
+    if (!pu || !pv) continue;
+    ctx.beginPath();
+    ctx.moveTo(pu.x, pu.y);
+    ctx.lineTo(pv.x, pv.y);
+    const isHighlight = highlight.edges && (highlight.edges.has(`${u}-${v}`) || highlight.edges.has(`${v}-${u}`));
+    ctx.strokeStyle = isHighlight ? '#00e5ff88' : '#2a3044';
+    ctx.lineWidth = isHighlight ? 2.5 : 1.5;
+    ctx.stroke();
+  }
+
+  // Draw nodes
+  const RADIUS = Math.max(14, Math.min(22, 300/graph.nodes.length));
+  for (let i=0; i<graph.nodes.length; i++) {
+    const n = graph.nodes[i];
+    const pos = nodePos[i];
+    if (!pos) continue;
+    const state = nodeColors[n] || 'default';
+    const isCandidate = highlight.candidate === n;
+
+    let fill, stroke, glowColor;
+    if (state === 'dominator') { fill = '#0a2a33'; stroke = '#00e5ff'; glowColor = '#00e5ff'; }
+    else if (state === 'dominated') { fill = '#0a2416'; stroke = '#a8ff78'; glowColor = '#a8ff78'; }
+    else if (state === 'undominated') { fill = '#2a1808'; stroke = '#ff6b35'; glowColor = '#ff6b35'; }
+    else { fill = '#1e2330'; stroke = '#3a4460'; glowColor = null; }
+
+    if (isCandidate) { stroke = '#ffd32a'; glowColor = '#ffd32a'; fill = '#2a2008'; }
+
+    if (glowColor) {
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = glowColor;
+    } else {
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, RADIUS, 0, 2*Math.PI);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = state !== 'default' ? 2.5 : 1.5;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = state === 'dominator' ? '#00e5ff' : state === 'dominated' ? '#a8ff78' : state === 'undominated' ? '#ff6b35' : '#8892a4';
+    ctx.font = `bold ${RADIUS * 0.75}px Space Mono, monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(n, pos.x, pos.y);
+  }
+}
+
+// ===========================
+// MOUSE / DRAG
+// ===========================
+mainCanvas.addEventListener('mousedown', e => {
+  const rect = mainCanvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const scaleX = mainCanvas.width / rect.width;
+  const scaleY = mainCanvas.height / rect.height;
+  const cx = mx * scaleX, cy = my * scaleY;
+  const nodeIndex = {};
+  graph.nodes.forEach((n,i) => nodeIndex[n] = i);
+  for (let i=0; i<graph.nodes.length; i++) {
+    const p = nodePos[i];
+    if (!p) continue;
+    const dx = cx - p.x, dy = cy - p.y;
+    if (dx*dx + dy*dy < 400) {
+      dragging = i;
+      dragOffX = dx; dragOffY = dy;
+      break;
+    }
+  }
+});
+mainCanvas.addEventListener('mousemove', e => {
+  if (dragging === null) return;
+  const rect = mainCanvas.getBoundingClientRect();
+  const scaleX = mainCanvas.width / rect.width;
+  const scaleY = mainCanvas.height / rect.height;
+  nodePos[dragging] = {
+    x: (e.clientX - rect.left) * scaleX - dragOffX,
+    y: (e.clientY - rect.top) * scaleY - dragOffY
+  };
+  drawGraph();
+});
+mainCanvas.addEventListener('mouseup', () => { dragging = null; });
+
+// ===========================
+// ALGO MODE
+// ===========================
+function setAlgo(mode) {
+  algoMode = mode;
+  document.getElementById('tab-brute').className = 'algo-tab' + (mode==='brute' ? ' active brute' : '');
+  document.getElementById('tab-greedy').className = 'algo-tab' + (mode==='greedy' ? ' active greedy' : '');
+  renderPseudo();
+  resetAlgorithm();
+}
+
+function updateSpeed(v) {
+  currentSpeed = parseInt(v);
+  document.getElementById('speedVal').textContent = speedLabels[currentSpeed];
+}
+
+// ===========================
+// PSEUDOCODE
+// ===========================
+const pseudoGreedy = [
+  { text: '<span class="kw">function</span> <span class="fn">greedyDominatingSet</span>(G):', ln: 1 },
+  { text: '&nbsp;&nbsp;D ← ∅  <span class="cm">// dominating set</span>', ln: 2 },
+  { text: '&nbsp;&nbsp;dominated ← ∅', ln: 3 },
+  { text: '&nbsp;&nbsp;<span class="kw">while</span> dominated ≠ V:', ln: 4 },
+  { text: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// find vertex with max new dominations</span>', ln: 5 },
+  { text: '&nbsp;&nbsp;&nbsp;&nbsp;best ← argmax_v |{v}∪N(v) − dominated|', ln: 6 },
+  { text: '&nbsp;&nbsp;&nbsp;&nbsp;D ← D ∪ {best}', ln: 7 },
+  { text: '&nbsp;&nbsp;&nbsp;&nbsp;dominated ← dominated ∪ {best} ∪ N(best)', ln: 8 },
+  { text: '&nbsp;&nbsp;<span class="kw">return</span> D', ln: 9 },
+];
+
+const pseudoBrute = [
+  { text: '<span class="kw">function</span> <span class="fn">bruteForceDominatingSet</span>(G, k):', ln: 1 },
+  { text: '&nbsp;&nbsp;<span class="kw">for</span> each subset S ⊆ V:', ln: 2 },
+  { text: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> |S| > k: <span class="kw">continue</span>', ln: 3 },
+  { text: '&nbsp;&nbsp;&nbsp;&nbsp;dominated ← S ∪ N(S)', ln: 4 },
+  { text: '&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> dominated = V:', ln: 5 },
+  { text: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> S  <span class="cm">// found minimum DS</span>', ln: 6 },
+  { text: '&nbsp;&nbsp;<span class="kw">return</span> null  <span class="cm">// no DS of size ≤ k</span>', ln: 7 },
+];
+
+function renderPseudo(activeLine = -1) {
+  const lines = algoMode === 'greedy' ? pseudoGreedy : pseudoBrute;
+  document.getElementById('pseudoBox').innerHTML = lines.map((l, i) =>
+    `<div class="pseudo-line${activeLine === i ? ' active' : ''}"><span class="ln">${l.ln}</span>${l.text}</div>`
+  ).join('');
+}
+
+renderPseudo();
+
+// ===========================
+// ALGORITHM: GREEDY STEPS
+// ===========================
+function buildGreedySteps() {
+  const adj = buildAdj();
+  const dominated = new Set();
+  const D = [];
+  const steps = [];
+  let opsCount = 0;
+
+  // Determine gain for each vertex
+  function gain(v) {
+    let g = dominated.has(v) ? 0 : 1;
+    for (const u of (adj[v]||[])) if (!dominated.has(u)) g++;
+    return g;
+  }
+
+  steps.push({ type: 'init', D: [], dominated: new Set(), candidate: null, msg: 'Initialize: D = ∅, all vertices undominated.', pseudo: 1, ops: 0 });
+
+  while (dominated.size < graph.nodes.length) {
+    opsCount++;
+    // Compute gains
+    let best = null, bestGain = -1;
+    for (const v of graph.nodes) {
+      opsCount++;
+      const g = gain(v);
+      if (g > bestGain || (g === bestGain && best !== null && v < best)) { bestGain = g; best = v; }
+    }
+    steps.push({ type: 'candidate', D: [...D], dominated: new Set(dominated), candidate: best, msg: `Evaluating vertices: best candidate is <span class="highlight">${best}</span> (gain = ${bestGain} new dominated vertices).`, pseudo: 5, ops: opsCount });
+
+    // Add best to D
+    D.push(best);
+    if (!dominated.has(best)) dominated.add(best);
+    for (const u of (adj[best]||[])) dominated.add(u);
+
+    steps.push({ type: 'add', D: [...D], dominated: new Set(dominated), candidate: null, msg: `Added <span class="highlight">${best}</span> to D. Now |D| = ${D.length}, dominated = ${dominated.size}/${graph.nodes.length}.`, pseudo: 7, ops: opsCount });
+  }
+
+  steps.push({ type: 'done', D: [...D], dominated: new Set(dominated), candidate: null, msg: `Done! Dominating Set = {${D.join(', ')}} with |D| = ${D.length}.`, pseudo: 8, ops: opsCount });
+  ops = opsCount;
+  return steps;
+}
+
+// ===========================
+// ALGORITHM: BRUTE FORCE STEPS
+// ===========================
+function buildBruteSteps() {
+  const adj = buildAdj();
+  const n = graph.nodes.length;
+  const steps = [];
+  let opsCount = 0;
+  let bestD = null;
+
+  function isDominating(subset) {
+    const dominated = new Set(subset);
+    for (const v of subset) for (const u of (adj[v]||[])) dominated.add(u);
+    return dominated.size === n;
+  }
+
+  steps.push({ type: 'init', D: [], dominated: new Set(), candidate: null, msg: `Brute-force: checking all 2<sup>${n}</sup> = ${Math.pow(2,n)} subsets of V.`, pseudo: 0, ops: 0 });
+
+  const limit = Math.min(Math.pow(2,n), 1024); // cap for large n display
+  for (let mask = 0; mask < Math.pow(2,n); mask++) {
+    opsCount++;
+    const subset = [];
+    for (let i=0; i<n; i++) if (mask & (1<<i)) subset.push(graph.nodes[i]);
+    const dom = new Set(subset);
+    for (const v of subset) for (const u of (adj[v]||[])) dom.add(u);
+
+    if (mask < limit) {
+      steps.push({ type: 'check', D: bestD ? [...bestD] : [], dominated: dom, candidate: null, subset: [...subset], msg: `Checking subset {${subset.join(', ')}} — dominates ${dom.size}/${n} vertices.`, pseudo: 3, ops: opsCount });
+    }
+
+    if (isDominating(subset) && (bestD === null || subset.length < bestD.length)) {
+      bestD = [...subset];
+      const domFull = new Set(bestD);
+      for (const v of bestD) for (const u of (adj[v]||[])) domFull.add(u);
+      steps.push({ type: 'found', D: [...bestD], dominated: domFull, candidate: null, msg: `Found better dominating set: {${bestD.join(', ')}} (size ${bestD.length}).`, pseudo: 5, ops: opsCount });
+    }
+    if (mask >= limit - 1 && limit < Math.pow(2,n)) {
+      steps.push({ type: 'truncate', D: bestD ? [...bestD] : [], dominated: new Set(), candidate: null, msg: `(Visualization capped at ${limit} subsets for display. Full brute-force: ${Math.pow(2,n)} subsets.)`, pseudo: 1, ops: opsCount });
+      break;
+    }
+  }
+
+  if (bestD) {
+    const domFull = new Set(bestD);
+    for (const v of bestD) for (const u of (adj[v]||[])) domFull.add(u);
+    steps.push({ type: 'done', D: [...bestD], dominated: domFull, candidate: null, msg: `Done! Minimum Dominating Set = {${bestD.join(', ')}} with |D| = ${bestD.length}.`, pseudo: 5, ops: opsCount });
+  }
+
+  ops = opsCount;
+  return steps;
+}
+
+function buildAdj() {
+  const adj = {};
+  for (const n of graph.nodes) adj[n] = [];
+  for (const [u,v] of graph.edges) { adj[u].push(v); adj[v].push(u); }
+  return adj;
+}
+
+// ===========================
+// ALGORITHM CONTROLS
+// ===========================
+function startAlgorithm() {
+  if (graph.nodes.length === 0) { showToast('Build a graph first!'); return; }
+  pauseAlgorithm();
+  algoSteps = algoMode === 'greedy' ? buildGreedySteps() : buildBruteSteps();
+  currentStep = 0;
+  document.getElementById('btnStep').disabled = false;
+  document.getElementById('btnPlay').disabled = false;
+  document.getElementById('modeBadge').className = 'mode-badge algo';
+  document.getElementById('modeBadge').textContent = '▶ Algorithm Running';
+  applyStep(0);
+  updateStats();
+}
+
+function stepAlgorithm() {
+  if (currentStep < algoSteps.length - 1) {
+    currentStep++;
+    applyStep(currentStep);
+  }
+}
+
+function playAlgorithm() {
+  if (playInterval) return;
+  document.getElementById('btnPause').disabled = false;
+  document.getElementById('btnPlay').disabled = true;
+  playInterval = setInterval(() => {
+    if (currentStep < algoSteps.length - 1) {
+      currentStep++;
+      applyStep(currentStep);
+    } else {
+      pauseAlgorithm();
+    }
+  }, speedMs[currentSpeed]);
+}
+
+function pauseAlgorithm() {
+  clearInterval(playInterval);
+  playInterval = null;
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('btnPlay').disabled = false;
+}
+
+function resetAlgorithm() {
+  pauseAlgorithm();
+  algoSteps = [];
+  currentStep = -1;
+  nodeColors = {};
+  ops = 0;
+  document.getElementById('btnStep').disabled = true;
+  document.getElementById('btnPlay').disabled = true;
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('statusDot').className = 'status-dot';
+  document.getElementById('statusText').textContent = 'Ready — press Build Steps to begin';
+  document.getElementById('stepNum').textContent = '—';
+  document.getElementById('dsSize').textContent = '—';
+  document.getElementById('domPct').textContent = '—';
+  document.getElementById('explanationBox').innerHTML = 'Select an algorithm and press <span class="highlight">Build Steps</span> to start.';
+  document.getElementById('modeBadge').className = 'mode-badge edit';
+  document.getElementById('modeBadge').textContent = '✏ Edit Mode — click/drag nodes';
+  renderPseudo();
+  updateStats();
+  drawGraph();
+}
+
+function applyStep(idx) {
+  const step = algoSteps[idx];
+  if (!step) return;
+
+  // Update node colors
+  nodeColors = {};
+  for (const v of graph.nodes) {
+    if (step.D && step.D.includes(v)) nodeColors[v] = 'dominator';
+    else if (step.dominated && step.dominated.has(v)) nodeColors[v] = 'dominated';
+    else if (step.dominated && !step.dominated.has(v)) nodeColors[v] = 'undominated';
+    else nodeColors[v] = 'default';
+  }
+
+  drawGraph({ candidate: step.candidate });
+
+  // Status
+  const isDone = step.type === 'done';
+  document.getElementById('statusDot').className = 'status-dot' + (isDone ? ' done' : ' running');
+  document.getElementById('statusText').textContent = isDone ? 'Algorithm complete!' : `Step ${idx+1} / ${algoSteps.length}`;
+  document.getElementById('stepNum').textContent = `${idx+1}/${algoSteps.length}`;
+  document.getElementById('dsSize').textContent = step.D ? step.D.length : '—';
+  document.getElementById('domPct').textContent = step.dominated ? `${step.dominated.size}/${graph.nodes.length}` : '—';
+  document.getElementById('explanationBox').innerHTML = step.msg || '';
+  document.getElementById('statK').textContent = step.D ? step.D.length : '—';
+  document.getElementById('statOps').textContent = step.ops || ops;
+
+  renderPseudo(step.pseudo !== undefined ? step.pseudo : -1);
+}
+
+function updateStats() {
+  document.getElementById('statV').textContent = graph.nodes.length;
+  document.getElementById('statE').textContent = graph.edges.length;
+  document.getElementById('statOps').textContent = ops;
+  drawGrowthChart();
+}
+
+// ===========================
+// GROWTH CHART
+// ===========================
+function drawGrowthChart() {
+  const canvas = document.getElementById('growthChart');
+  const c = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio || 500;
+  canvas.height = 140 * window.devicePixelRatio || 140;
+  c.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  const W = canvas.offsetWidth, H = 140;
+
+  c.clearRect(0,0,W,H);
+
+  const ns = [2,3,4,5,6,7,8,9,10];
+  const bruteVals = ns.map(n => Math.pow(2,n));
+  const greedyVals = ns.map(n => n * n);
+
+  const maxV = Math.max(...bruteVals);
+  const pad = { l: 36, r: 10, t: 10, b: 28 };
+  const gW = W - pad.l - pad.r, gH = H - pad.t - pad.b;
+
+  // Axes
+  c.strokeStyle = '#2a3044'; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(pad.l, pad.t); c.lineTo(pad.l, pad.t + gH); c.lineTo(pad.l + gW, pad.t + gH); c.stroke();
+
+  // Y labels
+  c.fillStyle = '#4a5568'; c.font = '9px Space Mono'; c.textAlign = 'right';
+  ['2ⁿ', 'n²'].forEach((label, i) => {
+    c.fillStyle = i === 0 ? '#ff6b35' : '#00e5ff';
+    c.fillText(label, pad.l - 4, pad.t + 10 + i * 14);
+  });
+
+  // X labels
+  c.fillStyle = '#4a5568'; c.textAlign = 'center';
+  ns.forEach((n, i) => {
+    const x = pad.l + (i / (ns.length-1)) * gW;
+    c.fillText(n, x, pad.t + gH + 16);
+  });
+  c.fillText('|V|', pad.l + gW/2, pad.t + gH + 26);
+
+  function plotLine(vals, color) {
+    const logVals = vals.map(v => Math.log(v+1));
+    const maxLog = Math.log(maxV+1);
+    c.beginPath();
+    vals.forEach((v, i) => {
+      const x = pad.l + (i/(ns.length-1)) * gW;
+      const y = pad.t + gH - (Math.log(v+1) / maxLog) * gH;
+      if (i === 0) c.moveTo(x, y); else c.lineTo(x, y);
+    });
+    c.strokeStyle = color; c.lineWidth = 2; c.stroke();
+    // Dot for current graph
+    const curN = graph.nodes.length;
+    if (curN >= 2 && curN <= 10) {
+      const i = ns.indexOf(curN);
+      if (i >= 0) {
+        const x = pad.l + (i/(ns.length-1)) * gW;
+        const y = pad.t + gH - (Math.log(vals[i]+1) / maxLog) * gH;
+        c.beginPath(); c.arc(x, y, 4, 0, 2*Math.PI);
+        c.fillStyle = color; c.fill();
+      }
+    }
+  }
+
+  plotLine(bruteVals, '#ff6b35');
+  plotLine(greedyVals, '#00e5ff');
+}
+
+// ===========================
+// NP PROOF DIAGRAM (SVG)
+// ===========================
+function drawReductionDiagram() {
+  const svg = document.getElementById('reductionSvg');
+  // G: triangle 0-1-2
+  // G': triangle + gadget nodes w01, w12, w02
+  const items = [
+    // G nodes
+    { id:'g0', cx:100, cy:130, label:'0', color:'#00e5ff' },
+    { id:'g1', cx:200, cy:60, label:'1', color:'#00e5ff' },
+    { id:'g2', cx:200, cy:200, label:'2', color:'#00e5ff' },
+    // G edges
+    { type:'edge', x1:100,y1:130, x2:200,y2:60, color:'#3a4460' },
+    { type:'edge', x1:200,y1:60, x2:200,y2:200, color:'#3a4460' },
+    { type:'edge', x1:100,y1:130, x2:200,y2:200, color:'#3a4460' },
+    // Arrow
+    { type:'arrow', x1:250,y1:130, x2:310,y2:130 },
+    { type:'label', x:280, y:115, text:'reduction', color:'#4a5568' },
+    // G' original nodes
+    { id:'gp0', cx:390, cy:130, label:'0', color:'#00e5ff' },
+    { id:'gp1', cx:490, cy:60, label:'1', color:'#00e5ff' },
+    { id:'gp2', cx:490, cy:200, label:'2', color:'#00e5ff' },
+    // Gadget vertices
+    { id:'w01', cx:440, cy:20, label:'w₀₁', color:'#ff6b35', r:14 },
+    { id:'w12', cx:555, cy:130, label:'w₁₂', color:'#ff6b35', r:14 },
+    { id:'w02', cx:390, cy:200, label:'w₀₂', color:'#ff6b35', r:14 },
+    // G' original edges
+    { type:'edge', x1:390,y1:130, x2:490,y2:60, color:'#3a4460' },
+    { type:'edge', x1:490,y1:60, x2:490,y2:200, color:'#3a4460' },
+    { type:'edge', x1:390,y1:130, x2:490,y2:200, color:'#3a4460' },
+    // Gadget edges
+    { type:'edge', x1:390,y1:130, x2:440,y2:20, color:'#ff6b3560' },
+    { type:'edge', x1:490,y1:60, x2:440,y2:20, color:'#ff6b3560' },
+    { type:'edge', x1:490,y1:60, x2:555,y2:130, color:'#ff6b3560' },
+    { type:'edge', x1:490,y1:200, x2:555,y2:130, color:'#ff6b3560' },
+    { type:'edge', x1:390,y1:130, x2:390,y2:200, color:'#ff6b3560' },
+    { type:'edge', x1:490,y1:200, x2:390,y2:200, color:'#ff6b3560' },
+  ];
+
+  let html = '<defs><marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4a5568"/></marker></defs>';
+
+  // Labels
+  html += `<text x="155" y="240" fill="#4a5568" font-size="13" font-family="Space Mono" text-anchor="middle">G (Vertex Cover)</text>`;
+  html += `<text x="470" y="240" fill="#4a5568" font-size="13" font-family="Space Mono" text-anchor="middle">G' (Dominating Set)</text>`;
+
+  for (const item of items) {
+    if (item.type === 'edge') {
+      html += `<line x1="${item.x1}" y1="${item.y1}" x2="${item.x2}" y2="${item.y2}" stroke="${item.color}" stroke-width="2"/>`;
+    } else if (item.type === 'arrow') {
+      html += `<line x1="${item.x1}" y1="${item.y1}" x2="${item.x2}" y2="${item.y2}" stroke="#4a5568" stroke-width="2" marker-end="url(#arr)"/>`;
+    } else if (item.type === 'label') {
+      html += `<text x="${item.x}" y="${item.y}" fill="${item.color}" font-size="11" font-family="Space Mono" text-anchor="middle">${item.text}</text>`;
+    } else {
+      const r = item.r || 18;
+      html += `<circle cx="${item.cx}" cy="${item.cy}" r="${r}" fill="${item.color}22" stroke="${item.color}" stroke-width="2"/>`;
+      html += `<text x="${item.cx}" y="${item.cy+4}" fill="${item.color}" font-size="${r>14?12:10}" font-family="Space Mono" text-anchor="middle">${item.label}</text>`;
+    }
+  }
+  svg.innerHTML = html;
+}
+
+drawReductionDiagram();
+
+// ===========================
+// REDUCTION DEMO CANVAS
+// ===========================
+function drawReductionDemo() {
+  const raw = document.getElementById('reductionInput').value.trim();
+  const edges = [];
+  const nodeSet = new Set();
+  for (const line of raw.split('\n')) {
+    const parts = line.trim().split(',');
+    if (parts.length >= 2) {
+      const u = parseInt(parts[0]), v = parseInt(parts[1]);
+      if (!isNaN(u) && !isNaN(v)) { edges.push([u,v]); nodeSet.add(u); nodeSet.add(v); }
+    }
+  }
+  const nodes = [...nodeSet].sort((a,b)=>a-b);
+  const n = nodes.length;
+
+  const canvas = document.getElementById('reductionCanvas');
+  canvas.width = canvas.offsetWidth * (window.devicePixelRatio||1);
+  canvas.height = 280 * (window.devicePixelRatio||1);
+  const c = canvas.getContext('2d');
+  c.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+  const W = canvas.offsetWidth, H = 280;
+  c.clearRect(0,0,W,H);
+
+  // Original positions (left half)
+  const cx1 = W*0.25, cy1 = H/2, r1 = Math.min(cx1, cy1)*0.7;
+  const origPos = {};
+  nodes.forEach((nd,i) => {
+    origPos[nd] = {
+      x: cx1 + r1*Math.cos(2*Math.PI*i/n - Math.PI/2),
+      y: cy1 + r1*Math.sin(2*Math.PI*i/n - Math.PI/2)
+    };
+  });
+
+  // Gadget positions (right half)
+  const cx2 = W*0.72, cy2 = H/2;
+  const gadgetPos = {};
+  edges.forEach(([u,v], i) => {
+    const key = `${u}_${v}`;
+    const angle = 2*Math.PI*i/edges.length;
+    gadgetPos[key] = {
+      x: cx2 + 80*Math.cos(angle),
+      y: cy2 + 80*Math.sin(angle)
+    };
+  });
+
+  // Copy original positions to right side
+  const origPos2 = {};
+  nodes.forEach((nd,i) => {
+    origPos2[nd] = {
+      x: cx2 - 30 + (origPos[nd].x - cx1)*0.6,
+      y: cy2 + (origPos[nd].y - cy1)*0.6
+    };
+  });
+
+  function drawEdge(c, x1,y1,x2,y2, color, dashed=false) {
+    c.beginPath();
+    if (dashed) c.setLineDash([4,4]); else c.setLineDash([]);
+    c.moveTo(x1,y1); c.lineTo(x2,y2);
+    c.strokeStyle = color; c.lineWidth = 1.5; c.stroke();
+    c.setLineDash([]);
+  }
+
+  function drawNode(c, x,y, label, color, radius=16) {
+    c.beginPath(); c.arc(x,y,radius,0,2*Math.PI);
+    c.fillStyle = color+'22'; c.fill();
+    c.strokeStyle = color; c.lineWidth = 2; c.stroke();
+    c.fillStyle = color; c.font = `bold 11px Space Mono`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(label, x, y);
+  }
+
+  // Labels
+  c.fillStyle = '#4a5568'; c.font = '11px Space Mono'; c.textAlign = 'center';
+  c.fillText('G (original)', W*0.25, 20);
+  c.fillText("G' (after reduction)", W*0.72, 20);
+  // Arrow
+  const ax = W/2; c.fillStyle = '#4a5568'; c.font = '20px serif';
+  c.fillText('→', ax, H/2);
+  c.font = '9px Space Mono'; c.fillText('polynomial', ax, H/2+16);
+
+  // Draw G (left)
+  for (const [u,v] of edges) {
+    const pu = origPos[u], pv = origPos[v];
+    drawEdge(c, pu.x, pu.y, pv.x, pv.y, '#3a4460');
+  }
+  for (const nd of nodes) {
+    const p = origPos[nd];
+    drawNode(c, p.x, p.y, nd, '#00e5ff');
+  }
+
+  // Draw G' (right)
+  // Original edges
+  for (const [u,v] of edges) {
+    const pu = origPos2[u], pv = origPos2[v];
+    drawEdge(c, pu.x, pu.y, pv.x, pv.y, '#3a4460');
+  }
+  // Gadget edges
+  for (const [u,v] of edges) {
+    const key = `${u}_${v}`;
+    const gp = gadgetPos[key];
+    const pu = origPos2[u], pv = origPos2[v];
+    drawEdge(c, pu.x, pu.y, gp.x, gp.y, '#ff6b3588', true);
+    drawEdge(c, pv.x, pv.y, gp.x, gp.y, '#ff6b3588', true);
+  }
+  // Original nodes
+  for (const nd of nodes) {
+    const p = origPos2[nd];
+    drawNode(c, p.x, p.y, nd, '#00e5ff');
+  }
+  // Gadget nodes
+  for (const [u,v] of edges) {
+    const key = `${u}_${v}`;
+    const gp = gadgetPos[key];
+    drawNode(c, gp.x, gp.y, `w${u}${v}`, '#ff6b35', 14);
+  }
+}
+
+drawReductionDemo();
+
+// ===========================
+// COMPARISON MODE
+// ===========================
+let compareGraph = { nodes: [], edges: [] };
+let comparePosArr = [];
+
+function loadComparePreset(name) {
+  let edges;
+  if (name === 'random') {
+    const n = 6 + Math.floor(Math.random()*3);
+    edges = [];
+    for (let i=0; i<n; i++) for (let j=i+1; j<n; j++) if (Math.random()<0.4) edges.push([i,j]);
+    if (edges.length === 0) edges = [[0,1],[1,2]];
+  } else {
+    edges = presets[name];
+  }
+  const nodeSet = new Set();
+  for (const [u,v] of edges) { nodeSet.add(u); nodeSet.add(v); }
+  compareGraph.nodes = [...nodeSet].sort((a,b)=>a-b);
+  compareGraph.edges = edges;
+  layoutCompareGraph();
+  drawCompareGraph(document.getElementById('bruteCanvas'), [], new Set(), null);
+  drawCompareGraph(document.getElementById('greedyCanvas'), [], new Set(), null);
+  document.getElementById('bruteK').textContent = 'k = —';
+  document.getElementById('greedyK').textContent = 'k = —';
+  document.getElementById('bfOps').textContent = '—';
+  document.getElementById('bfTime').textContent = '—';
+  document.getElementById('greedyOps').textContent = '—';
+  document.getElementById('greedyTime').textContent = '—';
+  document.getElementById('cmpBfK').textContent = '—';
+  document.getElementById('cmpGK').textContent = '—';
+}
+
+function layoutCompareGraph() {
+  const n = compareGraph.nodes.length;
+  const bc = document.getElementById('bruteCanvas');
+  const W = bc.offsetWidth || 300, H = 300;
+  const cx = W/2, cy = H/2, r = Math.min(cx,cy)*0.72;
+  comparePosArr = compareGraph.nodes.map((_,i) => ({
+    x: cx + r*Math.cos(2*Math.PI*i/n - Math.PI/2),
+    y: cy + r*Math.sin(2*Math.PI*i/n - Math.PI/2)
+  }));
+}
+
+function drawCompareGraph(canvas, D, dominated, candidate) {
+  const W = canvas.offsetWidth || 300, H = 300;
+  canvas.width = W * (window.devicePixelRatio||1);
+  canvas.height = H * (window.devicePixelRatio||1);
+  const c = canvas.getContext('2d');
+  c.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+  c.clearRect(0,0,W,H);
+  if (compareGraph.nodes.length === 0) return;
+
+  const nodeIndex = {};
+  compareGraph.nodes.forEach((n,i) => nodeIndex[n] = i);
+  const RADIUS = Math.max(14, Math.min(20, 280/compareGraph.nodes.length));
+
+  for (const [u,v] of compareGraph.edges) {
+    const pu = comparePosArr[nodeIndex[u]], pv = comparePosArr[nodeIndex[v]];
+    if (!pu||!pv) continue;
+    c.beginPath(); c.moveTo(pu.x,pu.y); c.lineTo(pv.x,pv.y);
+    c.strokeStyle = '#2a3044'; c.lineWidth = 1.5; c.stroke();
+  }
+
+  for (let i=0; i<compareGraph.nodes.length; i++) {
+    const n = compareGraph.nodes[i];
+    const p = comparePosArr[i];
+    let fill, stroke;
+    if (D.includes(n)) { fill='#0a2a33'; stroke='#00e5ff'; }
+    else if (dominated.has(n)) { fill='#0a2416'; stroke='#a8ff78'; }
+    else { fill='#2a1808'; stroke='#ff6b35'; }
+    c.beginPath(); c.arc(p.x,p.y,RADIUS,0,2*Math.PI);
+    c.fillStyle=fill; c.fill();
+    c.strokeStyle=stroke; c.lineWidth=2; c.stroke();
+    c.fillStyle=stroke; c.font=`bold ${RADIUS*0.75}px Space Mono`; c.textAlign='center'; c.textBaseline='middle';
+    c.fillText(n, p.x, p.y);
+  }
+}
+
+function runBruteForce(g) {
+  const adj = {};
+  for (const n of g.nodes) adj[n] = [];
+  for (const [u,v] of g.edges) { adj[u].push(v); adj[v].push(u); }
+  let bestD = null, opsCount = 0;
+  const n = g.nodes.length;
+  const t0 = performance.now();
+  for (let mask=0; mask<Math.pow(2,n); mask++) {
+    opsCount++;
+    const subset = [];
+    for (let i=0; i<n; i++) if (mask&(1<<i)) subset.push(g.nodes[i]);
+    const dom = new Set(subset);
+    for (const v of subset) for (const u of (adj[v]||[])) dom.add(u);
+    if (dom.size === n && (bestD===null || subset.length < bestD.length)) bestD = [...subset];
+  }
+  const t1 = performance.now();
+  return { D: bestD||[], time: (t1-t0).toFixed(1), ops: opsCount, adj };
+}
+
+function runGreedy(g) {
+  const adj = {};
+  for (const n of g.nodes) adj[n] = [];
+  for (const [u,v] of g.edges) { adj[u].push(v); adj[v].push(u); }
+  const dominated = new Set(), D = [];
+  let opsCount = 0;
+  const t0 = performance.now();
+  while (dominated.size < g.nodes.length) {
+    opsCount++;
+    let best=null, bestGain=-1;
+    for (const v of g.nodes) {
+      opsCount++;
+      let gain = dominated.has(v)?0:1;
+      for (const u of (adj[v]||[])) if (!dominated.has(u)) gain++;
+      if (gain>bestGain) { bestGain=gain; best=v; }
+    }
+    D.push(best);
+    if (!dominated.has(best)) dominated.add(best);
+    for (const u of (adj[best]||[])) dominated.add(u);
+  }
+  const t1 = performance.now();
+  return { D, time: (t1-t0).toFixed(1), ops: opsCount, adj };
+}
+
+function runComparison() {
+  if (compareGraph.nodes.length === 0) { showToast('Load a preset first!'); return; }
+  layoutCompareGraph();
+
+  const bfResult = runBruteForce(compareGraph);
+  const gResult = runGreedy(compareGraph);
+
+  // Build dominated sets
+  function getDominated(D, adj) {
+    const dom = new Set(D);
+    for (const v of D) for (const u of (adj[v]||[])) dom.add(u);
+    return dom;
+  }
+
+  const bfDom = getDominated(bfResult.D, bfResult.adj);
+  const gDom = getDominated(gResult.D, gResult.adj);
+
+  drawCompareGraph(document.getElementById('bruteCanvas'), bfResult.D, bfDom, null);
+  drawCompareGraph(document.getElementById('greedyCanvas'), gResult.D, gDom, null);
+
+  document.getElementById('bruteK').textContent = `k = ${bfResult.D.length}`;
+  document.getElementById('greedyK').textContent = `k = ${gResult.D.length}`;
+  document.getElementById('bfOps').textContent = bfResult.ops;
+  document.getElementById('bfTime').textContent = bfResult.time + ' ms';
+  document.getElementById('greedyOps').textContent = gResult.ops;
+  document.getElementById('greedyTime').textContent = gResult.time + ' ms';
+  document.getElementById('cmpBfK').textContent = `Optimal: |D| = ${bfResult.D.length}`;
+  document.getElementById('cmpGK').textContent = `Greedy: |D| = ${gResult.D.length}`;
+}
+
+function resetComparison() {
+  compareGraph = { nodes: [], edges: [] };
+  comparePosArr = [];
+  ['bruteCanvas','greedyCanvas'].forEach(id => {
+    const canvas = document.getElementById(id);
+    canvas.width = canvas.offsetWidth; canvas.height = 300;
+    canvas.getContext('2d').clearRect(0,0,canvas.width,300);
+  });
+  document.getElementById('bruteK').textContent = 'k = —';
+  document.getElementById('greedyK').textContent = 'k = —';
+  ['bfOps','bfTime','greedyOps','greedyTime','cmpBfK','cmpGK'].forEach(id => document.getElementById(id).textContent = '—');
+}
+
+// ===========================
+// COLLAPSIBLES
+// ===========================
+function toggleCollapsible(header) {
+  const body = header.nextElementSibling;
+  header.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+// ===========================
+// PAGE NAVIGATION
+// ===========================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => { if (t.getAttribute('onclick').includes("'"+name+"'")) t.classList.add('active'); });
+  if (name === 'compare' && compareGraph.nodes.length === 0) loadComparePreset('star');
+  if (name === 'tool') { resizeCanvas(); drawGraph(); }
+  drawGrowthChart();
+}
+
+// ===========================
+// TOAST
+// ===========================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ===========================
+// INIT
+// ===========================
+window.addEventListener('load', () => {
+  resizeCanvas();
+  loadPreset('star');
+  loadComparePreset('star');
+  drawGrowthChart();
+  drawReductionDemo();
+});
+</script>
+</body>
+</html>
